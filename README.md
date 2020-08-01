@@ -1,0 +1,1 @@
+deltamm函数是需要翻译的函数，其中调用了censqdelta,该函数是最基础的计算upsilon矩阵函数。
