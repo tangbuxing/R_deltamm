@@ -1,0 +1,55 @@
+> deltamm
+function (x, p = 2, max.delta = Inf, const = Inf, type = c("sqcen", 
+    "original"), N = NULL, verbose = FALSE, ...) 
+{
+    if (verbose) 
+        begin.tiid <- Sys.time()
+    if (is.null(x$X.feats) && is.null(x$Y.feats)) 
+        stop("deltamm: no features to merge/match!")
+    if (is.null(x$X.feats)) 
+        stop("deltamm: no verification features present.")
+    if (is.null(x$Y.feats)) 
+        stop("deltamm: no model features present.")
+    out <- x
+    out$match.type <- "deltamm"
+    out$match.message <- "Objects merged/matched based on the Baddeley Delta metric via the deltamm function."
+    a <- attributes(x)
+    type <- match.arg(type)
+    if (type == "original") 
+        res <- deltammOrig(x = x, p = p, max.delta = max.delta, 
+            const = const, verbose = verbose, ...)
+    else if (type == "sqcen") 
+        res <- deltammSqCen(x = x, p = p, max.delta = max.delta, 
+            const = const, N = N, verbose = verbose, ...)
+    out$Q <- res$Q
+    out$unmatched <- res$unmatched
+    out$matches <- res$matches
+    out$merges <- res$merges
+    out$MergeForced <- TRUE
+    if (verbose) 
+        print(Sys.time() - begin.tiid)
+    class(out) <- "matched"
+    return(out)
+}
+<bytecode: 0x0000018d728ed060>
+<environment: namespace:SpatialVx>
+
+#调用示例
+x[2:3,c(3:6, 8:10)] <- 1
+y[c(4:7, 9:10),c(7:9, 11:12)] <- 1
+
+x[30:50,45:65] <- 1
+y[c(22:24, 99:100),c(50:52, 99:100)] <- 1
+
+hold <- make.SpatialVx( x, y, field.type = "contrived", units = "none",
+    data.name = "Example", obs.name = "x", model.name = "y" )
+
+look <- FeatureFinder( hold, smoothpar = 0.5 ) 
+
+# The next line fails because the centering pushes one object out of the new domain.
+look2 <- deltamm( look, N = 300 )
+look2 <- MergeForce( look2 )
+
+look2
+
+plot( look2 )

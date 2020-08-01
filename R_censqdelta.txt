@@ -1,0 +1,48 @@
+> censqdelta
+function (x, y, N, const = Inf, p = 2, ...) 
+{
+    if (!all(is.element(unique(x), c(0, 1)))) 
+        x <- thresholder(x, th = 0, rule = ">")
+    if (!all(is.element(unique(y), c(0, 1)))) 
+        y <- thresholder(y, th = 0, rule = ">")
+    xdim <- dim(x)
+    loc <- cbind(rep(1:xdim[1], xdim[2]), rep(1:xdim[2], each = xdim[1]))
+    if (missing(N)) 
+        N <- max(xdim)
+    if (N%%2 == 0) 
+        N <- N + 1
+    xy <- x
+    xy[x == 0 & y > 0] <- 1
+    xycen <- imomenter(xy)$centroid
+    bigDloc <- cbind(rep(1:N, N), rep(1:N, each = N))
+    bigDcen <- rep(((N - 1)/2) + 1, 2)
+    cendiff <- bigDcen - xycen
+    xloc <- loc[c(as.logical(x)), ]
+    yloc <- loc[c(as.logical(y)), ]
+    X <- Y <- matrix(0, N, N)
+    idX <- xloc + matrix(cendiff, dim(xloc)[1], 2, byrow = TRUE)
+    idY <- yloc + matrix(cendiff, dim(yloc)[1], 2, byrow = TRUE)
+    goodIDx <- idX >= 1 & idX <= N
+    goodIDy <- idY >= 1 & idY <= N
+    if (!all(goodIDx)) {
+        warning("censqdelta: centering pushes observed data outside of new domain.  Removing some data.  Maybe choose larger N?")
+        if (!any(goodIDx)) 
+            stop("censqdelta: No observed data remains after centering in this domain.")
+        idX <- idX[goodIDx[, 1] & goodIDx[, 2], ]
+    }
+    if (!all(goodIDy)) {
+        warning("censqdelta: centering pushes forecast data outside of new domain.  Maybe choose larger N?")
+        if (!any(goodIDy)) 
+            stop("censqdelta: No forecast data remains after centering in this domain.")
+        idY <- idY[goodIDy[, 1] & goodIDy[, 2], ]
+    }
+    X[idX] <- 1
+    Y[idY] <- 1
+    X <- as.im(X)
+    Y <- as.im(Y)
+    X <- solutionset(X > 0)
+    Y <- solutionset(Y > 0)
+    return(deltametric(X, Y, p = p, c = const))
+}
+<bytecode: 0x000001bef8b893d8>
+<environment: namespace:SpatialVx>
