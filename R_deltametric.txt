@@ -1,0 +1,26 @@
+> deltametric
+function (A, B, p = 2, c = Inf, ...) 
+{
+    stopifnot(is.numeric(p) && length(p) == 1L && p > 0)
+    bb <- boundingbox(as.rectangle(A), as.rectangle(B))
+    A <- rebound(A, bb)
+    B <- rebound(B, bb)
+    dA <- distmap(A, ...)
+    dB <- distmap(B, ...)
+    if (!is.infinite(c)) {
+        dA <- eval.im(pmin.int(dA, c))
+        dB <- eval.im(pmin.int(dB, c))
+    }
+    if (is.infinite(p)) {
+        Z <- eval.im(abs(dA - dB))
+        delta <- summary(Z)$max
+    }
+    else {
+        Z <- eval.im(abs(dA - dB)^p)
+        iZ <- summary(Z)$mean
+        delta <- iZ^(1/p)
+    }
+    return(delta)
+}
+<bytecode: 0x000001899c595578>
+<environment: namespace:spatstat>
